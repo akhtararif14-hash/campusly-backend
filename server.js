@@ -1,56 +1,72 @@
-const express = require("express")
-const cors = require("cors")
-const path = require("path")
-require("dotenv").config()
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const connectDB = require("./config/db")
+// ROUTES
+import authRoutes from "./routes/auth.routes.js";
+import sellerRoutes from "./routes/seller.routes.js";
+import orderRoutes from "./routes/order.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 
-const authRoutes = require("./routes/auth.routes")
-const sellerRoutes = require("./routes/seller.routes")
-const orderRoutes = require("./routes/order.routes")
-const userRoutes = require("./routes/user.routes")
-const adminRoutes = require("./routes/admin.routes")
+// DB
+import connectDB from "./config/db.js";
 
-const app = express()
+dotenv.config();
+
+// FIX __dirname for ES MODULES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
 
 // ✅ CORS
-app.use(cors({
-  origin: true,
-  credentials: true,
-}))
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 // ✅ BODY PARSERS
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ STATIC FILES (THIS LINE FIXES YOUR IMAGE ISSUE)
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"))
-)
+// ✅ STATIC FILES (IMAGES)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ ROUTES
-app.use("/api/auth", authRoutes)
-app.use("/api/seller", sellerRoutes)
-app.use("/api/orders", orderRoutes)
-app.use("/api/user", userRoutes)
-app.use("/api/admin", adminRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/seller", sellerRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/admin", adminRoutes);
 
-// ✅ TEST ROUTE (OPTIONAL)
+// ✅ TEST ROUTE
 app.get("/", (req, res) => {
-  res.send("Backend running 🚀")
-})
+  res.send("Backend running 🚀");
+});
 
-// ❌ error handler LAST
+// ❌ ERROR HANDLER (LAST)
 app.use((err, req, res, next) => {
-  console.error("GLOBAL ERROR ❌", err)
-  res.status(500).json({ message: err.message || "Server error" })
-})
+  console.error("GLOBAL ERROR ❌", err);
+  res.status(500).json({
+    message: err.message || "Server error",
+  });
+});
 
 // ✅ START SERVER
-const PORT = process.env.PORT || 5000
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+const PORT = process.env.PORT || 5000;
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   })
-})
+  .catch((err) => {
+    console.error("MongoDB connection failed ❌", err.message);
+  });
