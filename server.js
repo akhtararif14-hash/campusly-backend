@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -17,7 +16,7 @@ import connectDB from "./config/db.js";
 
 dotenv.config();
 
-// FIX __dirname for ES MODULES
+// 🔧 FIX __dirname FOR ES MODULES
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -35,8 +34,13 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ STATIC FILES (IMAGES)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// ✅ STATIC FILES (THIS IS CRITICAL FOR IMAGES)
+// This serves:
+// /uploads/products/filename.jpg
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
 
 // ✅ ROUTES
 app.use("/api/auth", authRoutes);

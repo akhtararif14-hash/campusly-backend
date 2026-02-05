@@ -1,6 +1,4 @@
 import express from "express";
-import path from "path";
-
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import upload from "../middleware/upload.js";
@@ -13,12 +11,20 @@ router.post(
   "/product",
   auth,
   auth.authorize("seller"),
+
+  // 🔥 DEBUG
+  (req, res, next) => {
+    console.log("🔥 BEFORE MULTER");
+    next();
+  },
+
   upload.single("image"),
+
   async (req, res) => {
     try {
-      console.log("HEADERS:", req.headers["content-type"]);
-      console.log("BODY RAW:", req.body);
-      console.log("FILE RAW:", req.file);
+      console.log("🔥 AFTER MULTER");
+      console.log("BODY:", req.body);
+      console.log("FILE:", req.file);
 
       const { title, price } = req.body || {};
 
@@ -42,8 +48,7 @@ router.post(
         price: numericPrice,
         sellerId: req.user._id,
         sellerName: req.user.name || "",
-        // ✅ IMPORTANT: store URL-friendly path
-        image: `/uploads/${req.file.filename}`,
+        image: `/uploads/products/${req.file.filename}`, // ✅ CORRECT
       });
 
       res.status(201).json(product);
