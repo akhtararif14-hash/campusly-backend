@@ -3,8 +3,56 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import upload from "../middleware/upload.js";
 import auth from "../middleware/auth.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
+
+
+// ================= DELETE PRODUCT =================
+router.delete(
+  "/product/:id",
+  auth,
+  auth.authorize("seller"),
+  async (req, res) => {
+    try {
+      const product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // ✅ ensure seller owns the product
+      if (product.sellerId.toString() !== req.user._id) {
+        return res.status(403).json({ message: "Not allowed" });
+      }
+
+      // 🧹 delete image file
+      if (product.image) {
+        const imagePath = path.join(
+          __dirname,
+          "..",
+          product.image // "/uploads/products/xxx.jpg"
+        );
+
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+
+      // 🗑️ delete product from DB
+      await product.deleteOne();
+
+      res.json({ message: "Product deleted successfully" });
+    } catch (err) {
+      console.error("DELETE PRODUCT ERROR ❌", err);
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  }
+)
 
 // ================= ADD PRODUCT (SELLER ONLY) =================
 router.post(
