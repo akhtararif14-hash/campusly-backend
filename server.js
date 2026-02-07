@@ -53,15 +53,24 @@ app.use(
   })
 );
 
-// ✅ PASSPORT
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+)
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+app.use("/api/auth", authRoutes)
 
 // ✅ STATIC FILES (if still using local uploads)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ ROUTES
-app.use("/api/auth", authRoutes);
+
 app.use("/api/seller", sellerRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/user", userRoutes);
