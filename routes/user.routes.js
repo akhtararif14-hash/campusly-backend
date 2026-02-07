@@ -8,7 +8,9 @@ import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-// 👤 USER: GET ALL PRODUCTS
+/* ===========================
+   📦 PUBLIC: GET ALL PRODUCTS
+   =========================== */
 router.get("/products", async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -19,7 +21,9 @@ router.get("/products", async (req, res) => {
   }
 });
 
-// 🔐 Get profile
+/* ===========================
+   👤 GET MY PROFILE
+   =========================== */
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -33,7 +37,9 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-// ✏️ Update profile
+/* ===========================
+   ✏️ UPDATE PROFILE
+   =========================== */
 router.put("/me", auth, async (req, res) => {
   try {
     const { name, username, description } = req.body;
@@ -43,6 +49,7 @@ router.put("/me", auth, async (req, res) => {
     if (username !== undefined) update.username = username;
     if (description !== undefined) update.description = description;
 
+    // ensure username is unique
     if (username) {
       const exists = await User.findOne({
         username,
@@ -66,7 +73,9 @@ router.put("/me", auth, async (req, res) => {
   }
 });
 
-// 🔒 Change password
+/* ===========================
+   🔒 CHANGE PASSWORD
+   =========================== */
 router.put("/me/password", auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -82,29 +91,30 @@ router.put("/me/password", auth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const match = await bcrypt.compare(oldPassword, user.password || "");
+    const match = await bcrypt.compare(oldPassword, user.password);
     if (!match) {
-      return res
-        .status(401)
-        .json({ message: "Old password is incorrect" });
+      return res.status(401).json({ message: "Old password is incorrect" });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    res.json({ message: "Password updated" });
+    res.json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("CHANGE PASSWORD ERROR ❌", err);
     res.status(500).json({ message: "Failed to change password" });
   }
 });
 
-// 🔁 Change role (user ↔ seller)
+/* ===========================
+   🔁 CHANGE ROLE (USER ↔ SELLER)
+   =========================== */
 router.put("/me/role", auth, async (req, res) => {
   try {
     const { role } = req.body;
 
-    if (!role || !["user", "seller"].includes(role)) {
+    // only allow switching between user and seller
+    if (!["user", "seller"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
@@ -118,20 +128,24 @@ router.put("/me/role", auth, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!process.env.JWT_SECRET) {
-      console.warn("JWT_SECRET not set");
-    }
-
+    // issue NEW token with updated role
     const token = jwt.sign(
-      { _id: user._id, role: user.role, name: user.name },
+      {
+        _id: user._id,
+        role: user.role,
+        name: user.name,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
     const safeUser = user.toObject();
     delete safeUser.password;
 
-    res.json({ token, user: safeUser });
+    res.json({
+      token,
+      user: safeUser,
+    });
   } catch (err) {
     console.error("CHANGE ROLE ERROR ❌", err);
     res.status(500).json({ message: "Failed to change role" });

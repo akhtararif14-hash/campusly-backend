@@ -9,10 +9,12 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const router = express.Router();
 
-
-// ================= DELETE PRODUCT =================
+/* ===========================
+   🗑️ DELETE PRODUCT
+   =========================== */
 router.delete(
   "/product/:id",
   auth,
@@ -25,17 +27,18 @@ router.delete(
         return res.status(404).json({ message: "Product not found" });
       }
 
-      // ✅ ensure seller owns the product
+      // ensure seller owns the product
       if (product.sellerId.toString() !== req.user._id) {
         return res.status(403).json({ message: "Not allowed" });
       }
 
-      // 🧹 delete image file
+      // delete image file
       if (product.image) {
+        // product.image = "/uploads/products/xxx.jpg"
         const imagePath = path.join(
           __dirname,
           "..",
-          product.image // "/uploads/products/xxx.jpg"
+          product.image.replace(/^\/+/, "") // remove leading slash
         );
 
         if (fs.existsSync(imagePath)) {
@@ -43,7 +46,6 @@ router.delete(
         }
       }
 
-      // 🗑️ delete product from DB
       await product.deleteOne();
 
       res.json({ message: "Product deleted successfully" });
@@ -52,29 +54,19 @@ router.delete(
       res.status(500).json({ message: "Failed to delete product" });
     }
   }
-)
+);
 
-// ================= ADD PRODUCT (SELLER ONLY) =================
+/* ===========================
+   ➕ ADD PRODUCT (SELLER ONLY)
+   =========================== */
 router.post(
   "/product",
   auth,
   auth.authorize("seller"),
-
-  // 🔥 DEBUG
-  (req, res, next) => {
-    console.log("🔥 BEFORE MULTER");
-    next();
-  },
-
   upload.single("image"),
-
   async (req, res) => {
     try {
-      console.log("🔥 AFTER MULTER");
-      console.log("BODY:", req.body);
-      console.log("FILE:", req.file);
-
-      const { title, price } = req.body || {};
+      const { title, price } = req.body;
 
       if (!title || !price) {
         return res
@@ -96,7 +88,7 @@ router.post(
         price: numericPrice,
         sellerId: req.user._id,
         sellerName: req.user.name || "",
-        image: `/uploads/products/${req.file.filename}`, // ✅ CORRECT
+        image: `/uploads/products/${req.file.filename}`,
       });
 
       res.status(201).json(product);
@@ -109,7 +101,9 @@ router.post(
   }
 );
 
-// ================= LIST PRODUCTS =================
+/* ===========================
+   📦 LIST PRODUCTS
+   =========================== */
 router.get("/products", async (req, res) => {
   try {
     const products = await Product.find().sort({ _id: -1 });
@@ -120,17 +114,25 @@ router.get("/products", async (req, res) => {
   }
 });
 
-// ================= SELLER ORDERS =================
-router.get("/orders", auth, auth.authorize("seller"), async (req, res) => {
-  try {
-    const orders = await Order.find({ sellerId: req.user._id }).sort({
-      _id: -1,
-    });
-    res.json(orders);
-  } catch (err) {
-    console.error("FETCH SELLER ORDERS ERROR ❌", err);
-    res.status(500).json({ message: "Failed to fetch orders" });
+/* ===========================
+   📬 SELLER ORDERS
+   =========================== */
+router.get(
+  "/orders",
+  auth,
+  auth.authorize("seller"),
+  async (req, res) => {
+    try {
+      const orders = await Order.find({
+        "items.sellerId": req.user._id,
+      }).sort({ _id: -1 });
+
+      res.json(orders);
+    } catch (err) {
+      console.error("FETCH SELLER ORDERS ERROR ❌", err);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
   }
-});
+);
 
 export default router;
