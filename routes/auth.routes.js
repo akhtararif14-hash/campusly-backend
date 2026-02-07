@@ -1,6 +1,6 @@
 import express from "express";
-import jwt from "jsonwebtoken";
 import passport from "passport";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -36,9 +36,9 @@ router.get(
       { expiresIn: "7d" }
     );
 
-    // redirect back to frontend with token
+    // redirect back to frontend
     res.redirect(
-      `${process.env.FRONTEND_URL}?token=${token}`
+      `${process.env.FRONTEND_URL}/login?token=${token}`
     );
   }
 );

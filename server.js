@@ -4,7 +4,7 @@ dotenv.config(); // 🔥 MUST BE FIRST
 import express from "express";
 import cors from "cors";
 import session from "express-session";
-import passport from "./config/passport.js";
+
 import connectDB from "./config/db.js";
 
 // routes
@@ -34,9 +34,7 @@ app.use(
   })
 );
 
-// passport
-app.use(passport.initialize());
-app.use(passport.session());
+
 
 // routes
 app.use("/api/auth", authRoutes);
