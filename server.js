@@ -1,8 +1,20 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });  // ✅ MUST BE FIRST
+console.log("ENV FILE CHECK:", {
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+});
+
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
+import session from "express-session";
+import passport from "passport";
 import { fileURLToPath } from "url";
+
+// 🔐 PASSPORT CONFIG (after dotenv)
+import "./config/passport.js";
 
 // ROUTES
 import authRoutes from "./routes/auth.routes.js";
@@ -14,8 +26,6 @@ import adminRoutes from "./routes/admin.routes.js";
 // DB
 import connectDB from "./config/db.js";
 
-dotenv.config();
-
 // 🔧 FIX __dirname FOR ES MODULES
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +35,7 @@ const app = express();
 // ✅ CORS
 app.use(
   cors({
-    origin: true,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
@@ -34,13 +44,21 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ STATIC FILES (THIS IS CRITICAL FOR IMAGES)
-// This serves:
-// /uploads/products/filename.jpg
+// ✅ SESSION (MUST BE BEFORE PASSPORT)
 app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"))
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
 );
+
+// ✅ PASSPORT
+app.use(passport.initialize());
+app.use(passport.session());
+
+// ✅ STATIC FILES (if still using local uploads)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ ROUTES
 app.use("/api/auth", authRoutes);
@@ -69,6 +87,7 @@ connectDB()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
     });
   })
   .catch((err) => {

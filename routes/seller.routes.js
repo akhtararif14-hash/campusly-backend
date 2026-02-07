@@ -88,7 +88,7 @@ router.post(
         price: numericPrice,
         sellerId: req.user._id,
         sellerName: req.user.name || "",
-        image: `/uploads/products/${req.file.filename}`,
+        image: req.file.path
       });
 
       res.status(201).json(product);
