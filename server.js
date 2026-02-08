@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config(); // 🔥 MUST BE FIRST
+dotenv.config(); // MUST be first
 
 import express from "express";
 import cors from "cors";
-
+import passport from "./config/passport.js"; // ✅ IMPORT PASSPORT
 import connectDB from "./config/db.js";
 
 // routes
@@ -16,19 +16,18 @@ import adminRoutes from "./routes/admin.routes.js";
 const app = express();
 
 // middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ passport (NO sessions)
 app.use(passport.initialize());
-
-
-
-
 
 // routes
 app.use("/api/auth", authRoutes);
@@ -45,8 +44,12 @@ app.get("/", (req, res) => {
 // start
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on ${PORT}`);
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection failed ❌", err.message);
   });
-});
