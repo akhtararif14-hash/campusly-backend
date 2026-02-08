@@ -4,9 +4,7 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-/* ===========================
-   🔵 GOOGLE LOGIN START
-   =========================== */
+// 🔵 START GOOGLE LOGIN
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -14,14 +12,12 @@ router.get(
   })
 );
 
-/* ===========================
-   🔵 GOOGLE CALLBACK
-   =========================== */
+// 🔵 GOOGLE CALLBACK
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: `${process.env.FRONTEND_URL}/login`,
   }),
   (req, res) => {
     const user = req.user;
@@ -36,9 +32,9 @@ router.get(
       { expiresIn: "7d" }
     );
 
-    // redirect back to frontend
+    // ✅ redirect back to frontend with token
     res.redirect(
-      `${process.env.FRONTEND_URL}/login?token=${token}`
+      `${process.env.FRONTEND_URL}/oauth-success?token=${token}`
     );
   }
 );
