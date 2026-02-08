@@ -4,35 +4,55 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
+/* ===========================
+   🔵 GOOGLE LOGIN START
+   =========================== */
 router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
+    prompt: "select_account", // 👈 avoids cached Google issues
   })
 );
 
+/* ===========================
+   🔵 GOOGLE CALLBACK
+   =========================== */
 router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: `${process.env.FRONTEND_URL}/login`,
   }),
-  (req, res) => {
-    const user = req.user;
+  async (req, res) => {
+    try {
+      if (!req.user) {
+        console.error("❌ Google callback: req.user missing");
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/login?error=google_auth_failed`
+        );
+      }
 
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        role: user.role,
-        name: user.name,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+      const token = jwt.sign(
+        {
+          _id: req.user._id,
+          role: req.user.role,
+          name: req.user.name,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
 
-    res.redirect(
-      `${process.env.FRONTEND_URL}/login?token=${token}`
-    );
+      // ✅ SUCCESS → send token to frontend
+      res.redirect(
+        `${process.env.FRONTEND_URL}/login?token=${token}`
+      );
+    } catch (err) {
+      console.error("GOOGLE CALLBACK ERROR ❌", err);
+      res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=server_error`
+      );
+    }
   }
 );
 

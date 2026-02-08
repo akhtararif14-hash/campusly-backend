@@ -1,17 +1,31 @@
+import dotenv from "dotenv";
+dotenv.config(); // ✅ MUST BE FIRST LINE
+
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
+
+console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error("❌ Google OAuth env variables missing");
+}
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback", // 🔥 IMPORTANT
+      callbackURL:
+        "https://campusly-backend-production.up.railway.app/api/auth/google/callback",
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const email = profile.emails[0].value.toLowerCase();
+        const email = profile.emails?.[0]?.value?.toLowerCase();
+
+        if (!email) {
+          return done(new Error("No email from Google"), null);
+        }
 
         let user = await User.findOne({ email });
 
@@ -23,9 +37,9 @@ passport.use(
           });
         }
 
-        return done(null, user);
+        done(null, user);
       } catch (err) {
-        return done(err, null);
+        done(err, null);
       }
     }
   )
