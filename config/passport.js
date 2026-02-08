@@ -7,8 +7,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL:
-        "https://campusly-backend-production.up.railway.app/api/auth/google/callback",
+      callbackURL: "/api/auth/google/callback", // 🔥 IMPORTANT
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -24,12 +23,18 @@ passport.use(
           });
         }
 
-        done(null, user);
+        return done(null, user);
       } catch (err) {
-        done(err, null);
+        return done(err, null);
       }
     }
   )
 );
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+  const user = await User.findById(id);
+  done(null, user);
+});
 
 export default passport;
