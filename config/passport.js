@@ -1,11 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config(); // ✅ MUST BE FIRST LINE
+dotenv.config();
 
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
-
-console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
   throw new Error("❌ Google OAuth env variables missing");
