@@ -25,8 +25,6 @@ router.get(
     failureRedirect: "/login",
   }),
   (req, res) => {
-    const user = req.user;
-
     const token = jwt.sign(
       {
         _id: user._id,
