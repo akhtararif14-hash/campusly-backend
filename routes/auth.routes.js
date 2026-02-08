@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "passport";
+import passport from "../config/passport.js"; // ✅ Add correct path to passport config
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
@@ -22,7 +22,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login`,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`, // ✅ Better error message
   }),
   async (req, res) => {
     try {
@@ -38,6 +38,7 @@ router.get(
           _id: req.user._id,
           role: req.user.role,
           name: req.user.name,
+          email: req.user.email, // ✅ Add email to JWT payload
         },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
