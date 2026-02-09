@@ -42,10 +42,6 @@ passport.use(
   )
 );
 
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser(async (id, done) => {
-  const user = await User.findById(id);
-  done(null, user);
-});
+// ✅ REMOVED serializeUser and deserializeUser - not needed for JWT
 
 export default passport;

@@ -3,9 +3,8 @@ dotenv.config(); // ✅ FIRST
 
 import express from "express";
 import cors from "cors";
-import session from "express-session";
 
-import passport from "./config/passport.js"; // ✅ AFTER dotenv
+import passport from "./config/passport.js";
 import connectDB from "./config/db.js";
 
 // routes
@@ -25,16 +24,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.JWT_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-
+// ✅ Only initialize passport, NO session
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/seller", sellerRoutes);
