@@ -1,8 +1,10 @@
 import express from "express";
-import passport from "../config/passport.js"; // ✅ Add correct path to passport config
+import passport from "../config/passport.js";
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://campusly-frontend-eight.vercel.app";
 
 /* ===========================
    🔵 GOOGLE LOGIN START
@@ -11,7 +13,7 @@ router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
-    prompt: "select_account", // 👈 avoids cached Google issues
+    prompt: "select_account",
   })
 );
 
@@ -22,14 +24,14 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`, // ✅ Better error message
+    failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed`,
   }),
   async (req, res) => {
     try {
       if (!req.user) {
         console.error("❌ Google callback: req.user missing");
         return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=google_auth_failed`
+          `${FRONTEND_URL}/login?error=google_auth_failed`
         );
       }
 
@@ -38,7 +40,7 @@ router.get(
           _id: req.user._id,
           role: req.user.role,
           name: req.user.name,
-          email: req.user.email, // ✅ Add email to JWT payload
+          email: req.user.email,
         },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
@@ -46,12 +48,12 @@ router.get(
 
       // ✅ SUCCESS → send token to frontend
       res.redirect(
-        `${process.env.FRONTEND_URL}/login?token=${token}`
+        `${FRONTEND_URL}/login?token=${token}`
       );
     } catch (err) {
       console.error("GOOGLE CALLBACK ERROR ❌", err);
       res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=server_error`
+        `${FRONTEND_URL}/login?error=server_error`
       );
     }
   }
