@@ -1,61 +1,39 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-/* ===========================
-   🔐 AUTHENTICATE USER
-   =========================== */
-const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  // No Authorization header
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      message: "Authentication token missing",
-    });
-  }
-
-  const token = authHeader.split(" ")[1];
-
+export const protect = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let token;
 
-    // decoded contains: { _id, role, name, iat, exp }
-    req.user = decoded;
-    next();
-  } catch (err) {
-    // Token expired
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({
-        message: "Session expired. Please login again.",
-      });
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
     }
 
-    // Invalid token
-    return res.status(401).json({
-      message: "Invalid authentication token",
-    });
+    if (!token) {
+      return res.status(401).json({ message: "Not authorized, no token" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded._id).select("-password");
+
+    if (!req.user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("AUTH MIDDLEWARE ERROR:", error);
+    res.status(401).json({ message: "Not authorized, token failed" });
   }
 };
 
-/* ===========================
-   🔒 AUTHORIZE ROLES
-   =========================== */
-// Usage: auth.authorize("seller"), auth.authorize("admin")
-authenticate.authorize = (...allowedRoles) => {
+export const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({
-        message: "Not authenticated",
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        message: `Role '${req.user.role}' is not authorized to access this route` 
       });
     }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        message: "You do not have permission to perform this action",
-      });
-    }
-
     next();
   };
 };
-
-export default authenticate;

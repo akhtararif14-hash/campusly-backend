@@ -2,7 +2,7 @@ import express from "express";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import upload from "../middleware/upload.js";
-import auth from "../middleware/auth.js";
+import { protect, authorize } from "../middleware/auth.js"; // ✅ Fixed import
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -17,8 +17,8 @@ const router = express.Router();
    =========================== */
 router.delete(
   "/product/:id",
-  auth,
-  auth.authorize("seller"),
+  protect, // ✅ Fixed
+  authorize("seller", "admin"), // ✅ Fixed
   async (req, res) => {
     try {
       const product = await Product.findById(req.params.id);
@@ -28,7 +28,7 @@ router.delete(
       }
 
       // ensure seller owns the product
-      if (product.sellerId.toString() !== req.user._id) {
+      if (product.sellerId.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: "Not allowed" });
       }
 
@@ -61,8 +61,8 @@ router.delete(
    =========================== */
 router.post(
   "/product",
-  auth,
-  auth.authorize("seller"),
+  protect, // ✅ Fixed
+  authorize("seller", "admin"), // ✅ Fixed
   upload.single("image"),
   async (req, res) => {
     try {
@@ -119,8 +119,8 @@ router.get("/products", async (req, res) => {
    =========================== */
 router.get(
   "/orders",
-  auth,
-  auth.authorize("seller"),
+  protect, // ✅ Fixed
+  authorize("seller", "admin"), // ✅ Fixed
   async (req, res) => {
     try {
       const orders = await Order.find({
