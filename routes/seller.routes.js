@@ -61,8 +61,8 @@ router.delete(
    =========================== */
 router.post(
   "/product",
-  protect, // ✅ Fixed
-  authorize("seller", "admin"), // ✅ Fixed
+  protect,
+  authorize("seller", "admin"),
   upload.single("image"),
   async (req, res) => {
     try {
@@ -94,6 +94,9 @@ router.post(
       res.status(201).json(product);
     } catch (err) {
       console.error("ADD PRODUCT ERROR ❌", err);
+      console.error("ERROR DETAILS:", JSON.stringify(err, null, 2)); // ✅ Added this
+      console.error("ERROR MESSAGE:", err.message); // ✅ Added this
+      console.error("ERROR STACK:", err.stack); // ✅ Added this
       res
         .status(500)
         .json({ message: err.message || "Failed to add product" });
