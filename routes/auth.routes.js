@@ -1,7 +1,7 @@
 import express from "express";
 import passport from "../config/passport.js";
 import jwt from "jsonwebtoken";
-import { protect } from "../middleware/auth.js";
+import { annauth as protect } from "../middleware/auth.js";
 
 const router = express.Router();
 

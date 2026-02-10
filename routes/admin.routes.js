@@ -1,10 +1,10 @@
 import express from "express";
-import auth from "../middleware/auth.js";
+import { annauth as auth, authorize } from "../middleware/auth.js";
 
 const router = express.Router();
 
 // 👤 Get all users (admin only)
-router.get("/users", auth, auth.authorize("admin"), (req, res) => {
+router.get("/users", auth, authorize("admin"), (req, res) => {
   res.json({
     message: "Admin can see all users",
   });
@@ -14,7 +14,7 @@ router.get("/users", auth, auth.authorize("admin"), (req, res) => {
 router.put(
   "/approve-product/:id",
   auth,
-  auth.authorize("admin"),
+  authorize("admin"),
   (req, res) => {
     res.json({
       message: "Product approved by admin",

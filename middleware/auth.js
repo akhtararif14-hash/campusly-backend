@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-export const protect = async (req, res, next) => {
+const annauth = async (req, res, next) => {
   try {
     let token;
 
@@ -37,3 +37,5 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+export { annauth };

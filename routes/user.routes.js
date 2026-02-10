@@ -1,10 +1,9 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
 import Product from "../models/Product.js";
 import User from "../models/User.js";
-import auth from "../middleware/auth.js";
+import { annauth as auth } from "../middleware/auth.js";
 
 const router = express.Router();
 

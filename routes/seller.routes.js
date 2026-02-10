@@ -2,7 +2,7 @@ import express from "express";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import upload from "../middleware/upload.js";
-import { protect, authorize } from "../middleware/auth.js"; // ✅ Fixed import
+import { annauth as protect, authorize } from "../middleware/auth.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
