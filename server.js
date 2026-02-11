@@ -16,8 +16,6 @@ import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 
-import cors from 'cors';
-
 const allowedOrigins = [
   'https://campusly-frontend-eight.vercel.app',  // Production
   'http://localhost:5173',                        // Local dev
