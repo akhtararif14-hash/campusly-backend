@@ -12,10 +12,24 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "products",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"], // ✅ Added png, jpg, jpeg
+    transformation: [{ width: 1000, height: 1000, crop: "limit" }], // Optional: resize large images
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    if (!file.mimetype.startsWith('image/')) {
+      cb(new Error('Only image files are allowed!'), false);
+      return;
+    }
+    cb(null, true);
+  }
+});
 
 export default upload;
