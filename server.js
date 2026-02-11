@@ -16,8 +16,26 @@ import adminRoutes from "./routes/admin.routes.js";
 
 const app = express();
 
+import cors from 'cors';
+
+const allowedOrigins = [
+  'https://campusly-frontend-eight.vercel.app',  // Production
+  'http://localhost:5173',                        // Local dev
+  'http://localhost:5174',                        // Alternative port
+  'http://127.0.0.1:5173',                       // Alternative localhost
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
