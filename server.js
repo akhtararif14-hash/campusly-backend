@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config(); // ✅ FIRST
-import postRoutes from "./routes/post.routes.js";
+
 import express from "express";
 import cors from "cors";
 
@@ -13,6 +13,7 @@ import sellerRoutes from "./routes/seller.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import postRoutes from "./routes/post.routes.js"; // ✅ NEW - Social Feed
 
 const app = express();
 
@@ -22,8 +23,6 @@ const allowedOrigins = [
   'http://localhost:5174',                        // Alternative port
   'http://127.0.0.1:5173',                       // Alternative localhost
 ];
-
-app.use("/api/feed", postRoutes);
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -50,7 +49,7 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/feed", postRoutes);
+app.use("/api/feed", postRoutes); // ✅ NEW - Social Feed
 
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
