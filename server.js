@@ -18,7 +18,7 @@ import postRoutes from "./routes/post.routes.js"; // ✅ NEW - Social Feed
 const app = express();
 
 const allowedOrigins = [
-  'https://campusly-frontend-eight.vercel.app',  // Production
+  'https://campusly-frontend-ten.vercel.app',  // Production
   'http://localhost:5173',                        // Local dev
   'http://localhost:5174',                        // Alternative port
   'http://127.0.0.1:5173',                       // Alternative localhost
