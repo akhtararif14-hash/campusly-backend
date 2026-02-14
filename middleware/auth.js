@@ -14,7 +14,9 @@ const annauth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded._id).select("-password");
+    
+    // FIXED: Changed from decoded._id to decoded.userId (or decoded.id)
+   req.user = await User.findById(decoded.userId || decoded._id || decoded.id).select("-password");
 
     if (!req.user) {
       return res.status(401).json({ message: "User not found" });
